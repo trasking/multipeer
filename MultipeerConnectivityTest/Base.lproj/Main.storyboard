@@ -6,6 +6,8 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -22,22 +24,42 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xR2-dP-st6">
-                                <rect key="frame" x="143.5" y="318.5" width="88" height="30"/>
+                                <rect key="frame" x="143.5" y="368.5" width="88" height="30"/>
                                 <state key="normal" title="Find Devices"/>
                                 <connections>
                                     <action selector="findDevicesTapped:" destination="BYZ-38-t0r" eventType="primaryActionTriggered" id="Qbo-gt-VEI"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yBW-ab-mt8">
+                                <rect key="frame" x="147.5" y="418.5" width="80" height="30"/>
+                                <state key="normal" title="Send Photo"/>
+                                <connections>
+                                    <action selector="sendPhotoTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="4Hm-ZB-w97"/>
+                                </connections>
+                            </button>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Z42-yL-ARO">
+                                <rect key="frame" x="36" y="40" width="303" height="267"/>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="xR2-dP-st6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="HJ5-eA-jwV"/>
+                            <constraint firstItem="yBW-ab-mt8" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="8YS-i0-fK0"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Z42-yL-ARO" secondAttribute="trailing" constant="20" id="9Lo-tn-XQx"/>
+                            <constraint firstItem="xR2-dP-st6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="50" id="HJ5-eA-jwV"/>
+                            <constraint firstItem="Z42-yL-ARO" firstAttribute="height" secondItem="8bC-Xf-vdC" secondAttribute="height" multiplier="0.4" id="PRh-YZ-BLk"/>
+                            <constraint firstItem="Z42-yL-ARO" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="20" id="QBB-PS-dPG"/>
                             <constraint firstItem="xR2-dP-st6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Vyx-nr-HEe"/>
+                            <constraint firstItem="yBW-ab-mt8" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="100" id="nci-a7-95d"/>
+                            <constraint firstItem="Z42-yL-ARO" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="20" id="zr9-y4-Sw8"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="imageView" destination="Z42-yL-ARO" id="sSo-Zu-Mrc"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="-79.200000000000003" y="93.103448275862078"/>
         </scene>
     </scenes>
 </document>
