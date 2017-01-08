@@ -24,7 +24,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xR2-dP-st6">
-                                <rect key="frame" x="143.5" y="368.5" width="88" height="30"/>
+                                <rect key="frame" x="143.5" y="378.5" width="88" height="30"/>
                                 <state key="normal" title="Find Devices"/>
                                 <connections>
                                     <action selector="findDevicesTapped:" destination="BYZ-38-t0r" eventType="primaryActionTriggered" id="Qbo-gt-VEI"/>
@@ -37,23 +37,33 @@
                                     <action selector="sendPhotoTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="4Hm-ZB-w97"/>
                                 </connections>
                             </button>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Z42-yL-ARO">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Z42-yL-ARO">
                                 <rect key="frame" x="36" y="40" width="303" height="267"/>
                             </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ll9-5G-LuI">
+                                <rect key="frame" x="129.5" y="338.5" width="116" height="30"/>
+                                <state key="normal" title="Start Advertising"/>
+                                <connections>
+                                    <action selector="startAdvertisingTapped:" destination="BYZ-38-t0r" eventType="primaryActionTriggered" id="LrQ-ux-CIm"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="yBW-ab-mt8" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="8YS-i0-fK0"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Z42-yL-ARO" secondAttribute="trailing" constant="20" id="9Lo-tn-XQx"/>
-                            <constraint firstItem="xR2-dP-st6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="50" id="HJ5-eA-jwV"/>
+                            <constraint firstItem="Ll9-5G-LuI" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="A8E-CZ-GlE"/>
+                            <constraint firstItem="xR2-dP-st6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="60" id="HJ5-eA-jwV"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="height" secondItem="8bC-Xf-vdC" secondAttribute="height" multiplier="0.4" id="PRh-YZ-BLk"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="20" id="QBB-PS-dPG"/>
+                            <constraint firstItem="Ll9-5G-LuI" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="20" id="Qig-Rm-bS4"/>
                             <constraint firstItem="xR2-dP-st6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Vyx-nr-HEe"/>
                             <constraint firstItem="yBW-ab-mt8" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="100" id="nci-a7-95d"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="20" id="zr9-y4-Sw8"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="advertisingButton" destination="Ll9-5G-LuI" id="e3S-ob-j52"/>
                         <outlet property="imageView" destination="Z42-yL-ARO" id="sSo-Zu-Mrc"/>
                     </connections>
                 </viewController>

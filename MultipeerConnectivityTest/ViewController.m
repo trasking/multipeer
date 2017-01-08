@@ -16,6 +16,7 @@
 @property (strong, nonatomic) MCAdvertiserAssistant *advertiser;
 @property (strong, nonatomic) MCNearbyServiceBrowser *browser;
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (weak, nonatomic) IBOutlet UIButton *advertisingButton;
 
 @end
 
@@ -23,14 +24,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.peer = [[MCPeerID alloc] initWithDisplayName:[[UIDevice currentDevice] name]];
-    self.session = [[MCSession alloc] initWithPeer:self.peer];
-    self.session.delegate = self;
-    self.advertiser = [[MCAdvertiserAssistant alloc] initWithServiceType:@"sprocket" discoveryInfo:nil session:self.session];
-    self.advertiser.delegate = self;
-    self.browser = [[MCNearbyServiceBrowser alloc] initWithPeer:self.peer serviceType:@"sprocket"];
-    [self.advertiser start];
+    [self setupConnectivity];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -52,9 +46,21 @@
 }
 
 - (IBAction)findDevicesTapped:(id)sender {
+    self.browser = [[MCNearbyServiceBrowser alloc] initWithPeer:self.peer serviceType:@"sprocket"];
     MCBrowserViewController *browserController = [[MCBrowserViewController alloc] initWithBrowser:self.browser session:self.session];
     browserController.delegate = self;
     [self presentViewController:browserController animated:YES completion:nil];
+}
+
+- (IBAction)startAdvertisingTapped:(id)sender {
+    if ([self.advertisingButton.currentTitle isEqualToString:@"Start Advertising"]) {
+        [self.advertisingButton setTitle:@"Stop Advertising" forState:UIControlStateNormal];
+        [self.advertiser start];
+    } else {
+        [self.advertisingButton setTitle:@"Start Advertising" forState:UIControlStateNormal];
+        [self.advertiser stop];
+    }
+    
 }
 
 #pragma mark - MCAdvertiserAssistantDelegate
@@ -99,12 +105,12 @@
 {
     NSLog(@"PHOTO: %@", info);
     [self dismissViewControllerAnimated:YES completion:^{
-//        UIImagePickerControllerReferenceURL
-        NSData *data = UIImagePNGRepresentation([info objectForKey:UIImagePickerControllerOriginalImage]);
+        UIImage *image = [self normalizedImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
+        NSData *data = UIImagePNGRepresentation(image);
         NSError *error = nil;
-        BOOL result = [self.session sendData:data toPeers:self.session.connectedPeers withMode:MCSessionSendDataUnreliable error:&error];
-        NSLog(@"SEND %@", result ? @"SUCCESS" : @"FAIL");
-        NSLog(@"SEND ERROR: %@", error);
+        NSArray *peers = self.session.connectedPeers;
+        BOOL result = [self.session sendData:data toPeers:peers withMode:MCSessionSendDataUnreliable error:&error];
+        NSLog(@"SEND %@\nERROR: %@", result ? @"SUCCESS" : @"FAIL", error);
     }];
 }
 
@@ -126,12 +132,12 @@
 
 - (void)session:(MCSession *)session didStartReceivingResourceWithName:(NSString *)resourceName fromPeer:(MCPeerID *)peerID withProgress:(NSProgress *)progress
 {
-    
+    NSLog(@"START RESOURCE: %@", resourceName);
 }
 
 - (void)session:(MCSession *)session didFinishReceivingResourceWithName:(NSString *)resourceName fromPeer:(MCPeerID *)peerID atURL:(NSURL *)localURL withError:(NSError *)error
 {
-    
+    NSLog(@"FINISH RESOURCE: %@\nURL: %@\nERROR: %@", resourceName, localURL, error);
 }
 
 - (void)session:(MCSession *)session didReceiveStream:(NSInputStream *)stream withName:(NSString *)streamName fromPeer:(MCPeerID *)peerID
@@ -142,6 +148,26 @@
 - (void)session:(MCSession *)session peer:(MCPeerID *)peerID didChangeState:(MCSessionState)state
 {
     NSLog(@"SESSION PEER:  %@:  %ld", peerID, (long)state);
+}
+
+#pragma mark - Utilities
+
+- (UIImage *)normalizedImage:(UIImage *)image {
+    if (image.imageOrientation == UIImageOrientationUp) return image;
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
+    [image drawInRect:(CGRect){0, 0, image.size}];
+    UIImage *normalizedImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return normalizedImage;
+}
+
+- (void)setupConnectivity
+{
+    self.peer = [[MCPeerID alloc] initWithDisplayName:[[UIDevice currentDevice] name]];
+    self.session = [[MCSession alloc] initWithPeer:self.peer];
+    self.session.delegate = self;
+    self.advertiser = [[MCAdvertiserAssistant alloc] initWithServiceType:@"sprocket" discoveryInfo:nil session:self.session];
+    self.advertiser.delegate = self;
 }
 
 @end
