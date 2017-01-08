@@ -1,0 +1,64 @@
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "2.5.0"
+
+default_platform :ios
+
+platform :ios do
+  before_all do
+    # ensure_git_status_clean
+  end
+
+  # desc "Submit a new Beta Build to Apple TestFlight"
+  # desc "This will also make sure the profile is up to date"
+  # lane :beta do
+  #   # match(type: "appstore") # more information: https://codesigning.guide
+  #   gym(scheme: "PhotoGram-AppStore") # Build your app - more options available
+  #   pilot
+  #
+  #   # sh "your_script.sh"
+  #   # You can also use other beta testing services here (run `fastlane actions`)
+  # end
+  #
+  # desc "Deploy a new version to the App Store"
+  # lane :release do
+  #   # match(type: "appstore")
+  #   # snapshot
+  #   gym(scheme: "PhotoGram-AppStore") # Build your app - more options available
+  #   deliver(force: true)
+  #   # frameit
+  # end
+  #
+  desc "Deploy a new version to S3"
+  lane :adhoc do
+    # match(type: 'adhoc')
+    gym(export_method: 'development')
+    s3(
+      region:'us-west-2',
+      bucket:'pi-ios-apps',
+      html_file_name:'peer.html',
+      html_template_path:'fastlane/s3.html.erb',
+      version_file_name:'peer.json',
+      path:'fastlane/MultipeerConnectivity/v{CFBundleShortVersionString}_b{CFBundleVersion}/'
+    )
+    # http://hpgo.co/ob4qxRm
+  end
+
+  # ,
+  # access_key: '',
+  # secret_access_key: ''
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end

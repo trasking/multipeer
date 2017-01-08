@@ -15,3 +15,5 @@ xcuserdatad
 profile
 *.moved-aside
 DerivedData
+.ruby-*
+fastlane/build
