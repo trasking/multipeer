@@ -23,7 +23,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xR2-dP-st6">
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xR2-dP-st6">
                                 <rect key="frame" x="143.5" y="378.5" width="88" height="30"/>
                                 <state key="normal" title="Find Devices"/>
                                 <connections>
@@ -40,25 +40,43 @@
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Z42-yL-ARO">
                                 <rect key="frame" x="36" y="40" width="303" height="267"/>
                             </imageView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ll9-5G-LuI">
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ll9-5G-LuI">
                                 <rect key="frame" x="129.5" y="338.5" width="116" height="30"/>
                                 <state key="normal" title="Start Advertising"/>
                                 <connections>
                                     <action selector="startAdvertisingTapped:" destination="BYZ-38-t0r" eventType="primaryActionTriggered" id="LrQ-ux-CIm"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6N0-9s-He6">
+                                <rect key="frame" x="151" y="338.5" width="73" height="30"/>
+                                <state key="normal" title="Host Party"/>
+                                <connections>
+                                    <segue destination="OUm-lB-TCN" kind="presentation" identifier="HostPartySegue" id="BTN-Di-vRm"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RWH-Yh-ITo">
+                                <rect key="frame" x="153" y="378.5" width="69" height="30"/>
+                                <state key="normal" title="Join Party"/>
+                                <connections>
+                                    <segue destination="Nfw-z2-Lyw" kind="presentation" identifier="JoinPartySegue" id="Rye-9s-3sb"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="yBW-ab-mt8" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="8YS-i0-fK0"/>
+                            <constraint firstItem="RWH-Yh-ITo" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="60" id="8rE-y9-oTk"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Z42-yL-ARO" secondAttribute="trailing" constant="20" id="9Lo-tn-XQx"/>
                             <constraint firstItem="Ll9-5G-LuI" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="A8E-CZ-GlE"/>
                             <constraint firstItem="xR2-dP-st6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="60" id="HJ5-eA-jwV"/>
+                            <constraint firstItem="6N0-9s-He6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="20" id="Ofr-yR-86r"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="height" secondItem="8bC-Xf-vdC" secondAttribute="height" multiplier="0.4" id="PRh-YZ-BLk"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="20" id="QBB-PS-dPG"/>
                             <constraint firstItem="Ll9-5G-LuI" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="20" id="Qig-Rm-bS4"/>
                             <constraint firstItem="xR2-dP-st6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Vyx-nr-HEe"/>
+                            <constraint firstItem="6N0-9s-He6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="cqD-Bj-zK2"/>
                             <constraint firstItem="yBW-ab-mt8" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="100" id="nci-a7-95d"/>
+                            <constraint firstItem="RWH-Yh-ITo" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="tDs-gH-2nc"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="20" id="zr9-y4-Sw8"/>
                         </constraints>
                     </view>
@@ -69,7 +87,131 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-79.200000000000003" y="93.103448275862078"/>
+            <point key="canvasLocation" x="-1143.2" y="-384.55772113943033"/>
+        </scene>
+        <!--Join Party-->
+        <scene sceneID="Qa1-tU-Mme">
+            <objects>
+                <tableViewController id="cRz-lI-qLw" customClass="JoinPartyTableViewController" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="b3o-Kq-Xbj">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="JoinPartyCell" textLabel="oPs-OT-6OI" style="IBUITableViewCellStyleDefault" id="a5X-H3-dL9">
+                                <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="a5X-H3-dL9" id="oDZ-mT-JOL">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="oPs-OT-6OI">
+                                            <rect key="frame" x="15" y="0.0" width="345" height="43"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="0.0"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="cRz-lI-qLw" id="CyB-LV-fWH"/>
+                            <outlet property="delegate" destination="cRz-lI-qLw" id="fm6-c4-ySI"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Join Party" id="FQV-y8-8Br">
+                        <barButtonItem key="rightBarButtonItem" title="Done" id="MWn-LU-mDG">
+                            <connections>
+                                <action selector="doneButtonTapped:" destination="cRz-lI-qLw" id="7ko-dY-p8e"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="CCA-NA-dJr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="889" y="-386"/>
+        </scene>
+        <!--Host Party-->
+        <scene sceneID="Jfv-Ay-bzX">
+            <objects>
+                <tableViewController id="LhR-hX-2Kr" customClass="HostPartyTableViewController" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="f2L-fX-HmA">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="HostPartyCell" textLabel="RJu-mQ-FiZ" style="IBUITableViewCellStyleDefault" id="lG2-rI-p3D">
+                                <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="lG2-rI-p3D" id="9Cq-ap-wsh">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RJu-mQ-FiZ">
+                                            <rect key="frame" x="15" y="0.0" width="345" height="43"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="0.0"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="LhR-hX-2Kr" id="3b9-kM-s8t"/>
+                            <outlet property="delegate" destination="LhR-hX-2Kr" id="2CF-WS-bhQ"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Host Party" id="bXA-9v-TIq">
+                        <barButtonItem key="rightBarButtonItem" title="Done" id="bod-Nh-4Ci">
+                            <connections>
+                                <action selector="doneButtonTapped:" destination="LhR-hX-2Kr" id="535-dE-45a"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dRR-aQ-pcg" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-295" y="520"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="R9y-jT-uSD">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="OUm-lB-TCN" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="SZc-5w-eNg">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="LhR-hX-2Kr" kind="relationship" relationship="rootViewController" id="wdc-SQ-gyV"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="B1x-5G-noK" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1143" y="521"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="wTN-bd-lbW">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Nfw-z2-Lyw" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="JNt-dM-Jhc">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="cRz-lI-qLw" kind="relationship" relationship="rootViewController" id="tbl-Nb-0L9"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="w0O-xB-Ebw" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-153" y="-386"/>
         </scene>
     </scenes>
 </document>

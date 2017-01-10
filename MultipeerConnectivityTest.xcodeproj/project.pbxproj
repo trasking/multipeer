@@ -13,6 +13,8 @@
 		659000A31E1F597E008ECD1A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 659000A11E1F597E008ECD1A /* Main.storyboard */; };
 		659000A51E1F597E008ECD1A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 659000A41E1F597E008ECD1A /* Assets.xcassets */; };
 		659000A81E1F597E008ECD1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 659000A61E1F597E008ECD1A /* LaunchScreen.storyboard */; };
+		65FB492E1E24491C00F60658 /* HostPartyTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65FB492D1E24491C00F60658 /* HostPartyTableViewController.m */; };
+		65FB49311E2459C400F60658 /* JoinPartyTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65FB49301E2459C400F60658 /* JoinPartyTableViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +28,10 @@
 		659000A41E1F597E008ECD1A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		659000A71E1F597E008ECD1A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		659000A91E1F597E008ECD1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		65FB492C1E24491C00F60658 /* HostPartyTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HostPartyTableViewController.h; sourceTree = "<group>"; };
+		65FB492D1E24491C00F60658 /* HostPartyTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HostPartyTableViewController.m; sourceTree = "<group>"; };
+		65FB492F1E2459C400F60658 /* JoinPartyTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoinPartyTableViewController.h; sourceTree = "<group>"; };
+		65FB49301E2459C400F60658 /* JoinPartyTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoinPartyTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +73,10 @@
 				659000A61E1F597E008ECD1A /* LaunchScreen.storyboard */,
 				659000A91E1F597E008ECD1A /* Info.plist */,
 				659000981E1F597E008ECD1A /* Supporting Files */,
+				65FB492C1E24491C00F60658 /* HostPartyTableViewController.h */,
+				65FB492D1E24491C00F60658 /* HostPartyTableViewController.m */,
+				65FB492F1E2459C400F60658 /* JoinPartyTableViewController.h */,
+				65FB49301E2459C400F60658 /* JoinPartyTableViewController.m */,
 			);
 			path = MultipeerConnectivityTest;
 			sourceTree = "<group>";
@@ -153,7 +163,9 @@
 			files = (
 				659000A01E1F597E008ECD1A /* ViewController.m in Sources */,
 				6590009D1E1F597E008ECD1A /* AppDelegate.m in Sources */,
+				65FB492E1E24491C00F60658 /* HostPartyTableViewController.m in Sources */,
 				6590009A1E1F597E008ECD1A /* main.m in Sources */,
+				65FB49311E2459C400F60658 /* JoinPartyTableViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

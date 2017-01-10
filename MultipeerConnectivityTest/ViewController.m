@@ -8,6 +8,8 @@
 
 #import "ViewController.h"
 #import <MultipeerConnectivity/MultipeerConnectivity.h>
+#import "HostPartyTableViewController.h"
+#import "JoinPartyTableViewController.h"
 
 @interface ViewController () <MCAdvertiserAssistantDelegate, MCBrowserViewControllerDelegate, MCNearbyServiceBrowserDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MCSessionDelegate>
 
@@ -35,6 +37,21 @@
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"HostPartySegue"]) {
+        UINavigationController *nav = (UINavigationController *)segue.destinationViewController;
+        HostPartyTableViewController *vc = (HostPartyTableViewController *)nav.topViewController;
+        vc.peer = self.peer;
+        vc.session = self.session;
+    } else if ([segue.identifier isEqualToString:@"JoinPartySegue"]) {
+        UINavigationController *nav = (UINavigationController *)segue.destinationViewController;
+        JoinPartyTableViewController *vc = (JoinPartyTableViewController *)nav.topViewController;
+        vc.peer = self.peer;
+        vc.session = self.session;
+    }
 }
 
 #pragma mark - Button handlers
