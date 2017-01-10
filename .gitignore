@@ -17,3 +17,4 @@ profile
 DerivedData
 .ruby-*
 fastlane/build
+fastlane/report.xml

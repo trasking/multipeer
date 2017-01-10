@@ -10,6 +10,7 @@
 
 @interface ViewController : UIViewController
 
+extern NSString * const kSessionChangedNotification;
 
 @end
 

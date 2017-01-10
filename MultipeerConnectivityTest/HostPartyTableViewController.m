@@ -7,6 +7,7 @@
 //
 
 #import "HostPartyTableViewController.h"
+#import "ViewController.h"
 
 @interface HostPartyTableViewController () <MCNearbyServiceBrowserDelegate>
 
@@ -30,6 +31,8 @@ NSUInteger kHostAvailableSection = 1;
     
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleSessionChanged:) name:kSessionChangedNotification object:nil];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -171,6 +174,15 @@ NSUInteger kHostAvailableSection = 1;
 - (void)browser:(MCNearbyServiceBrowser *)browser lostPeer:(MCPeerID *)peerID
 {
     [self.availablePeers removeObject:peerID];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.tableView reloadData];
+    });
+}
+
+#pragma mark - NSNotificationCenter
+
+- (void)handleSessionChanged:(NSNotification *)notification
+{
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.tableView reloadData];
     });

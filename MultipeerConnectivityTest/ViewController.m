@@ -27,6 +27,8 @@
 
 @implementation ViewController
 
+NSString * const kSessionChangedNotification = @"kSessionChangedNotification";
+
 NSString *kServiceType = @"sprocket";
 
 - (void)viewDidLoad {
@@ -140,6 +142,7 @@ NSString *kServiceType = @"sprocket";
 - (void)session:(MCSession *)session peer:(MCPeerID *)peerID didChangeState:(MCSessionState)state
 {
     NSLog(@"SESSION PEER:  %@:  %ld", peerID, (long)state);
+    [[NSNotificationCenter defaultCenter] postNotificationName:kSessionChangedNotification object:nil];
     [self setHostPartyButtonText];
 }
 
