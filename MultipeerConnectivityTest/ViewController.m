@@ -9,20 +9,25 @@
 #import "ViewController.h"
 #import <MultipeerConnectivity/MultipeerConnectivity.h>
 #import "HostPartyTableViewController.h"
-#import "JoinPartyTableViewController.h"
 
-@interface ViewController () <MCAdvertiserAssistantDelegate, MCBrowserViewControllerDelegate, MCNearbyServiceBrowserDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MCSessionDelegate>
+@interface ViewController () <MCNearbyServiceBrowserDelegate, MCNearbyServiceAdvertiserDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MCSessionDelegate>
 
 @property (strong, nonatomic) MCPeerID *peer;
-@property (strong, nonatomic) MCSession *session;
-@property (strong, nonatomic) MCAdvertiserAssistant *advertiser;
+@property (strong, nonatomic) MCPeerID *hostPeer;
+@property (strong, nonatomic) MCSession *hostSession;
+@property (strong, nonatomic) MCSession *guestSession;
+@property (strong, nonatomic) MCNearbyServiceAdvertiser *advertiser;
 @property (strong, nonatomic) MCNearbyServiceBrowser *browser;
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
-@property (weak, nonatomic) IBOutlet UIButton *advertisingButton;
+@property (weak, nonatomic) IBOutlet UIButton *joinPartyButton;
+@property (weak, nonatomic) IBOutlet UIButton *sendPhotoButton;
+@property (weak, nonatomic) IBOutlet UIButton *hostPartyButton;
 
 @end
 
 @implementation ViewController
+
+NSString *kServiceType = @"sprocket";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -32,6 +37,7 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    [self setHostPartyButtonText];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -45,12 +51,7 @@
         UINavigationController *nav = (UINavigationController *)segue.destinationViewController;
         HostPartyTableViewController *vc = (HostPartyTableViewController *)nav.topViewController;
         vc.peer = self.peer;
-        vc.session = self.session;
-    } else if ([segue.identifier isEqualToString:@"JoinPartySegue"]) {
-        UINavigationController *nav = (UINavigationController *)segue.destinationViewController;
-        JoinPartyTableViewController *vc = (JoinPartyTableViewController *)nav.topViewController;
-        vc.peer = self.peer;
-        vc.session = self.session;
+        vc.session = self.hostSession;
     }
 }
 
@@ -62,46 +63,21 @@
     [self presentViewController:imagePickerController animated:YES completion:nil];
 }
 
-- (IBAction)findDevicesTapped:(id)sender {
-    self.browser = [[MCNearbyServiceBrowser alloc] initWithPeer:self.peer serviceType:@"sprocket"];
-    MCBrowserViewController *browserController = [[MCBrowserViewController alloc] initWithBrowser:self.browser session:self.session];
-    browserController.delegate = self;
-    [self presentViewController:browserController animated:YES completion:nil];
-}
-
-- (IBAction)startAdvertisingTapped:(id)sender {
-    if ([self.advertisingButton.currentTitle isEqualToString:@"Start Advertising"]) {
-        [self.advertisingButton setTitle:@"Stop Advertising" forState:UIControlStateNormal];
-        [self.advertiser start];
-    } else {
-        [self.advertisingButton setTitle:@"Start Advertising" forState:UIControlStateNormal];
-        [self.advertiser stop];
-    }
-    
-}
-
-#pragma mark - MCAdvertiserAssistantDelegate
-
-- (void)advertiserAssitantWillPresentInvitation:(MCAdvertiserAssistant *)advertiserAssistant
-{
-    
-}
-
-- (void)advertiserAssistantDidDismissInvitation:(MCAdvertiserAssistant *)advertiserAssistant
-{
-    
-}
-
-#pragma mark - MCBrowserViewControllerDelegate
-
-- (void)browserViewControllerDidFinish:(MCBrowserViewController *)browserViewController
-{
-    [self dismissViewControllerAnimated:YES completion:nil];
-}
-
-- (void)browserViewControllerWasCancelled:(MCBrowserViewController *)browserViewController
-{
-    [self dismissViewControllerAnimated:YES completion:nil];
+- (IBAction)joinPartyButtonHandler:(id)sender {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([self.joinPartyButton.titleLabel.text isEqualToString:@"Join Party"]) {
+            [self.advertiser startAdvertisingPeer];
+            [self.joinPartyButton setTitle:@"Ready to Party" forState:UIControlStateNormal];
+        } else if ([self.joinPartyButton.titleLabel.text isEqualToString:@"Ready to Party"]) {
+          [self.advertiser stopAdvertisingPeer];
+            [self.joinPartyButton setTitle:@"Join Party" forState:UIControlStateNormal];
+        } else {
+            [self.guestSession disconnect];
+            self.hostPeer = nil;
+            [self.joinPartyButton setTitle:@"Join Party" forState:UIControlStateNormal];
+            self.sendPhotoButton.hidden = YES;
+        }
+    });
 }
 
 #pragma mark - MCNearbyServiceBrowserDelegate
@@ -125,8 +101,7 @@
         UIImage *image = [self normalizedImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
         NSData *data = UIImagePNGRepresentation(image);
         NSError *error = nil;
-        NSArray *peers = self.session.connectedPeers;
-        BOOL result = [self.session sendData:data toPeers:peers withMode:MCSessionSendDataUnreliable error:&error];
+        BOOL result = [self.guestSession sendData:data toPeers:@[ self.hostPeer ] withMode:MCSessionSendDataReliable error:&error];
         NSLog(@"SEND %@\nERROR: %@", result ? @"SUCCESS" : @"FAIL", error);
     }];
 }
@@ -165,6 +140,21 @@
 - (void)session:(MCSession *)session peer:(MCPeerID *)peerID didChangeState:(MCSessionState)state
 {
     NSLog(@"SESSION PEER:  %@:  %ld", peerID, (long)state);
+    [self setHostPartyButtonText];
+}
+
+#pragma mark - MCNearbyServiceAdvertiserDelegate
+
+- (void)advertiser:(MCNearbyServiceAdvertiser *)advertiser didReceiveInvitationFromPeer:(MCPeerID *)peerID withContext:(NSData *)context invitationHandler:(void (^)(BOOL accept, MCSession *session))invitationHandler
+{
+    NSLog(@"INVITATION RECEIVED");
+    [self.advertiser stopAdvertisingPeer];
+    self.hostPeer = peerID;
+    invitationHandler(YES, self.guestSession);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.joinPartyButton setTitle:[NSString stringWithFormat:@"Partying with %@", self.hostPeer.displayName] forState:UIControlStateNormal];
+        self.sendPhotoButton.hidden = NO;
+    });
 }
 
 #pragma mark - Utilities
@@ -181,10 +171,23 @@
 - (void)setupConnectivity
 {
     self.peer = [[MCPeerID alloc] initWithDisplayName:[[UIDevice currentDevice] name]];
-    self.session = [[MCSession alloc] initWithPeer:self.peer];
-    self.session.delegate = self;
-    self.advertiser = [[MCAdvertiserAssistant alloc] initWithServiceType:@"sprocket" discoveryInfo:nil session:self.session];
+    self.hostSession = [[MCSession alloc] initWithPeer:self.peer];
+    self.hostSession.delegate = self;
+    self.guestSession = [[MCSession alloc] initWithPeer:self.peer];
+    self.guestSession.delegate = self;
+    self.advertiser = [[MCNearbyServiceAdvertiser alloc] initWithPeer:self.peer discoveryInfo:nil serviceType:kServiceType];
     self.advertiser.delegate = self;
+}
+
+- (void)setHostPartyButtonText
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSString *text = @"Host Party";
+        if (self.hostSession.connectedPeers.count > 0) {
+            text = [NSString stringWithFormat:@"Hosting Party (%lu)", (unsigned long)self.hostSession.connectedPeers.count];
+        }
+        [self.hostPartyButton setTitle:text forState:UIControlStateNormal];
+    });
 }
 
 @end

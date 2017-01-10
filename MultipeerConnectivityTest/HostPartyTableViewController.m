@@ -8,9 +8,10 @@
 
 #import "HostPartyTableViewController.h"
 
-@interface HostPartyTableViewController () <MCNearbyServiceAdvertiserDelegate>
+@interface HostPartyTableViewController () <MCNearbyServiceBrowserDelegate>
 
-@property (strong, nonatomic) MCNearbyServiceAdvertiser *advertiser;
+@property (strong, nonatomic) MCNearbyServiceBrowser *browser;
+@property (strong, nonatomic) NSMutableArray<MCPeerID *> *availablePeers;
 
 @end
 
@@ -18,6 +19,8 @@
 
 NSString *kHostCellReuseIdentifier = @"HostPartyCell";
 NSString *kHostServiceType = @"sprocket";
+NSUInteger kHostJoinedSection = 0;
+NSUInteger kHostAvailableSection = 1;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -32,13 +35,15 @@ NSString *kHostServiceType = @"sprocket";
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    self.advertiser = [[MCNearbyServiceAdvertiser alloc] initWithPeer:self.peer discoveryInfo:nil serviceType:kHostServiceType];
-    self.advertiser.delegate = self;
-    [self.advertiser startAdvertisingPeer];
+    
+    self.availablePeers = [NSMutableArray array];
+    self.browser = [[MCNearbyServiceBrowser alloc] initWithPeer:self.peer serviceType:kHostServiceType];
+    self.browser.delegate = self;
+    [self.browser startBrowsingForPeers];
 }
 
 - (IBAction)doneButtonTapped:(id)sender {
-    [self.advertiser stopAdvertisingPeer];
+    [self.browser stopBrowsingForPeers];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -50,21 +55,63 @@ NSString *kHostServiceType = @"sprocket";
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.session.connectedPeers.count;
-//    return self.session.connectedPeers.count;
+    if (kHostJoinedSection == section) {
+        return self.session.connectedPeers.count;
+    } else {
+        return self.availablePeers.count;
+    }
+}
+
+- (nullable NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    if (kHostJoinedSection == section) {
+        return @"Joined";
+    } else {
+        return @"Available";
+    }
+}
+
+- (nullable NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
+{
+    if (kHostJoinedSection == section) {
+        return [NSString stringWithFormat:@"%lu device%@", (unsigned long)self.session.connectedPeers.count, 1 == self.session.connectedPeers.count ? @"" : @"s"];
+    } else {
+        return [NSString stringWithFormat:@"%lu device%@", (unsigned long)self.availablePeers.count, 1 == self.availablePeers.count ? @"" : @"s"];
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kHostCellReuseIdentifier forIndexPath:indexPath];
-    MCPeerID *peer = [self.session.connectedPeers objectAtIndex:indexPath.row];
+    MCPeerID *peer = nil;
+    if (kHostJoinedSection == indexPath.section) {
+        peer = [self.session.connectedPeers objectAtIndex:indexPath.row];
+    } else {
+        peer = [self.availablePeers objectAtIndex:indexPath.row];
+    }
     cell.textLabel.text = peer.displayName;
     return cell;
 }
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    cell.selected = NO;
+    if (indexPath.section == kHostAvailableSection) {
+        MCPeerID *peer = [self.availablePeers objectAtIndex:indexPath.row];
+        NSLog(@"INVITE PEER: %@", peer.displayName);
+        [self.browser invitePeer:peer toSession:self.session withContext:nil timeout:10];
+        [self.availablePeers removeObject:peer];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView reloadData];
+        });
+    }
+}
+
 
 /*
 // Override to support conditional editing of the table view.
@@ -110,12 +157,20 @@ NSString *kHostServiceType = @"sprocket";
 }
 */
 
-#pragma mark - MCNearbyServiceAdvertiserDelegate
 
-- (void)advertiser:(MCNearbyServiceAdvertiser *)advertiser didReceiveInvitationFromPeer:(MCPeerID *)peerID withContext:(NSData *)context invitationHandler:(void (^)(BOOL accept, MCSession *session))invitationHandler
+#pragma mark - MCNearbyServiceBrowserDelegate
+
+- (void) browser:(MCNearbyServiceBrowser *)browser foundPeer:(MCPeerID *)peerID withDiscoveryInfo:(nullable NSDictionary<NSString *, NSString *> *)info
 {
-    NSLog(@"INVITATION RECEIVED");
-    invitationHandler(YES, self.session);
+    [self.availablePeers addObject:peerID];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.tableView reloadData];
+    });
+}
+
+- (void)browser:(MCNearbyServiceBrowser *)browser lostPeer:(MCPeerID *)peerID
+{
+    [self.availablePeers removeObject:peerID];
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.tableView reloadData];
     });
