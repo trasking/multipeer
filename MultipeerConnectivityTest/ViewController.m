@@ -24,8 +24,10 @@
 @property (weak, nonatomic) IBOutlet UIButton *hostPartyButton;
 @property (strong, nonatomic) NSInputStream *input;
 @property (strong, nonatomic) NSOutputStream *output;
-@property (strong, nonatomic) NSMutableData *imageData;
-@property (assign, nonatomic) NSUInteger imageSize;
+@property (strong, nonatomic) NSMutableData *imageDataReceived;
+@property (assign, nonatomic) NSUInteger imageSizeExpected;
+@property (strong, nonatomic) NSData *imageDataToSend;
+@property (assign, nonatomic) NSUInteger imageBytesSent;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressView;
 
 @end
@@ -33,8 +35,8 @@
 @implementation ViewController
 
 NSString * const kSessionChangedNotification = @"kSessionChangedNotification";
-
-NSString *kServiceType = @"sprocket";
+NSString * const kServiceType = @"sprocket";
+NSUInteger const kMaxChunkSize = 1024;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -148,8 +150,8 @@ NSString *kServiceType = @"sprocket";
         self.progressView.hidden = NO;
     });
     NSLog(@"RECEIVED STREAM: %@", streamName);
-    self.imageData = [NSMutableData data];
-    self.imageSize = -1;
+    self.imageDataReceived = [NSMutableData data];
+    self.imageSizeExpected = -1;
     self.input = stream;
     [self.input setDelegate:self];
     [self.input scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
@@ -188,34 +190,47 @@ NSString *kServiceType = @"sprocket";
         length = [(NSInputStream *)aStream read:buffer maxLength:1024];
         if (length) {
             
-            if (-1 == self.imageSize) {
+            if (-1 == self.imageSizeExpected) {
                 // Adapted from http://stackoverflow.com/questions/4378218/how-do-i-convert-a-24-bit-integer-into-a-3-byte-array
-                self.imageSize = ((int)buffer[3]) << 24;
-                self.imageSize |= ((int)buffer[2]) << 16;
-                self.imageSize |= ((int)buffer[1]) << 8;
-                self.imageSize |= buffer[0];
+                self.imageSizeExpected = ((int)buffer[3]) << 24;
+                self.imageSizeExpected |= ((int)buffer[2]) << 16;
+                self.imageSizeExpected |= ((int)buffer[1]) << 8;
+                self.imageSizeExpected |= buffer[0];
                 for (int idx = 4; idx < length; idx++) {
                     buffer[idx - 4] = buffer[idx];
                 }
                 length -= 4;
             }
-            [self.imageData appendBytes:(const void *)buffer length:length];
+            [self.imageDataReceived appendBytes:(const void *)buffer length:length];
         } else {
             NSLog(@"ZERO LENGTH!");
         }
         dispatch_async(dispatch_get_main_queue(), ^{
-            float progress = (float)[self.imageData length] / (float)self.imageSize;
+            float progress = (float)[self.imageDataReceived length] / (float)self.imageSizeExpected;
             self.progressView.progress = progress;
             NSLog(@"PROGRESS: %.2f", progress);
         });
-//        NSLog(@"READ %ld  TOTAL %ld  MAX %ld", (long)length, [self.imageData length], self.imageSize);
+    } else if (NSStreamEventHasSpaceAvailable == eventCode) {
+        NSUInteger bytesRemaining = [self.imageDataToSend length] - self.imageBytesSent;
+        NSUInteger chunk = bytesRemaining > kMaxChunkSize ? kMaxChunkSize : bytesRemaining;
+        [self.output write:[self.imageDataToSend bytes] + self.imageBytesSent maxLength:chunk];
+        self.imageBytesSent += chunk;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            float progress = (float)self.imageBytesSent / (float)[self.imageDataToSend length];
+            self.progressView.progress = progress;
+            NSLog(@"PROGRESS: %.2f", progress);
+            if (self.imageBytesSent >= [self.imageDataToSend length]) {
+                self.progressView.hidden = YES;
+                [self.output close];
+                [self.output removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+            }
+        });
     } else if (NSStreamEventEndEncountered == eventCode) {
         dispatch_async(dispatch_get_main_queue(), ^{
             self.progressView.hidden = YES;
-            UIImage *image = [UIImage imageWithData:self.imageData];
+            UIImage *image = [UIImage imageWithData:self.imageDataReceived];
             self.imageView.image = image;
-            NSLog(@"IMAGE RECEIVED: %@", image);
-            self.imageData = nil;
+            self.imageDataReceived = nil;
             [self.input close];
             [self.input removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
         });
@@ -257,8 +272,13 @@ NSString *kServiceType = @"sprocket";
 
 - (BOOL)sendImage:(UIImage *)image
 {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.progressView.progress = 0.0;
+        self.progressView.hidden = NO;
+    });
     UIImage *normalizedImage = [self normalizedImage:image];
-    NSData *data = UIImagePNGRepresentation(normalizedImage);
+    self.imageDataToSend = UIImagePNGRepresentation(normalizedImage);
+    self.imageBytesSent = 0;
     NSError *error = nil;
     self.output = [self.guestSession startStreamWithName:@"Image" toPeer:self.hostPeer error:&error];
     self.output.delegate = self;
@@ -266,7 +286,7 @@ NSString *kServiceType = @"sprocket";
     [self.output open];
     
     // Adapted from http://stackoverflow.com/questions/4378218/how-do-i-convert-a-24-bit-integer-into-a-3-byte-array
-    NSUInteger value = [data length];
+    NSUInteger value = [self.imageDataToSend length];
     Byte bytes[4];
     bytes[0] = value & 0xff;
     bytes[1] = (value >> 8) & 0xff;
@@ -274,10 +294,6 @@ NSString *kServiceType = @"sprocket";
     bytes[3] = (value >> 24) & 0xff;
     [self.output write:bytes maxLength:4];
     
-    [self.output write:[data bytes] maxLength:[data length]];
-    NSLog(@"OUTPUT WRITTEN");
-    [self.output close];
-    [self.output removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
     return YES;
 }
 
