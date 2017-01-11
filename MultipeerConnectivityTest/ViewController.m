@@ -28,6 +28,7 @@
 @property (assign, nonatomic) NSUInteger imageSizeExpected;
 @property (strong, nonatomic) NSData *imageDataToSend;
 @property (assign, nonatomic) NSUInteger imageBytesSent;
+@property (strong, nonatomic) NSDate *sendStartTime;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressView;
 
 @end
@@ -218,7 +219,8 @@ NSUInteger const kMaxChunkSize = 1024;
         dispatch_async(dispatch_get_main_queue(), ^{
             float progress = (float)self.imageBytesSent / (float)[self.imageDataToSend length];
             self.progressView.progress = progress;
-            NSLog(@"PROGRESS: %.2f", progress);
+            NSTimeInterval elapsedTime = [self.sendStartTime timeIntervalSinceNow];
+            NSLog(@"%.2f byte/sec", (float)self.imageBytesSent / (float)elapsedTime * -1);
             if (self.imageBytesSent >= [self.imageDataToSend length]) {
                 self.progressView.hidden = YES;
                 [self.output close];
@@ -279,6 +281,7 @@ NSUInteger const kMaxChunkSize = 1024;
     UIImage *normalizedImage = [self normalizedImage:image];
     self.imageDataToSend = UIImagePNGRepresentation(normalizedImage);
     self.imageBytesSent = 0;
+    self.sendStartTime = [NSDate date];
     NSError *error = nil;
     self.output = [self.guestSession startStreamWithName:@"Image" toPeer:self.hostPeer error:&error];
     self.output.delegate = self;
