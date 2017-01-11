@@ -10,7 +10,7 @@
 #import <MultipeerConnectivity/MultipeerConnectivity.h>
 #import "HostPartyTableViewController.h"
 
-@interface ViewController () <MCNearbyServiceBrowserDelegate, MCNearbyServiceAdvertiserDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MCSessionDelegate>
+@interface ViewController () <MCNearbyServiceBrowserDelegate, MCNearbyServiceAdvertiserDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MCSessionDelegate, NSStreamDelegate>
 
 @property (strong, nonatomic) MCPeerID *peer;
 @property (strong, nonatomic) MCPeerID *hostPeer;
@@ -22,6 +22,11 @@
 @property (weak, nonatomic) IBOutlet UIButton *joinPartyButton;
 @property (weak, nonatomic) IBOutlet UIButton *sendPhotoButton;
 @property (weak, nonatomic) IBOutlet UIButton *hostPartyButton;
+@property (strong, nonatomic) NSInputStream *input;
+@property (strong, nonatomic) NSOutputStream *output;
+@property (strong, nonatomic) NSMutableData *imageData;
+@property (assign, nonatomic) NSUInteger imageSize;
+@property (weak, nonatomic) IBOutlet UIProgressView *progressView;
 
 @end
 
@@ -100,11 +105,13 @@ NSString *kServiceType = @"sprocket";
 {
     NSLog(@"PHOTO: %@", info);
     [self dismissViewControllerAnimated:YES completion:^{
-        UIImage *image = [self normalizedImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
-        NSData *data = UIImagePNGRepresentation(image);
-        NSError *error = nil;
-        BOOL result = [self.guestSession sendData:data toPeers:@[ self.hostPeer ] withMode:MCSessionSendDataReliable error:&error];
-        NSLog(@"SEND %@\nERROR: %@", result ? @"SUCCESS" : @"FAIL", error);
+        [self sendImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
+//        
+//        UIImage *image = [self normalizedImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
+//        NSData *data = UIImagePNGRepresentation(image);
+//        NSError *error = nil;
+//        BOOL result = [self.guestSession sendData:data toPeers:@[ self.hostPeer ] withMode:MCSessionSendDataReliable error:&error];
+//        NSLog(@"SEND %@\nERROR: %@", result ? @"SUCCESS" : @"FAIL", error);
     }];
 }
 
@@ -136,7 +143,17 @@ NSString *kServiceType = @"sprocket";
 
 - (void)session:(MCSession *)session didReceiveStream:(NSInputStream *)stream withName:(NSString *)streamName fromPeer:(MCPeerID *)peerID
 {
-    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.progressView.progress = 0.0;
+        self.progressView.hidden = NO;
+    });
+    NSLog(@"RECEIVED STREAM: %@", streamName);
+    self.imageData = [NSMutableData data];
+    self.imageSize = -1;
+    self.input = stream;
+    [self.input setDelegate:self];
+    [self.input scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+    [self.input open];
 }
 
 - (void)session:(MCSession *)session peer:(MCPeerID *)peerID didChangeState:(MCSessionState)state
@@ -158,6 +175,51 @@ NSString *kServiceType = @"sprocket";
         [self.joinPartyButton setTitle:[NSString stringWithFormat:@"Partying with %@", self.hostPeer.displayName] forState:UIControlStateNormal];
         self.sendPhotoButton.hidden = NO;
     });
+}
+
+#pragma mark - NSStreamDelegate
+
+- (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode
+{
+//    NSLog(@"STREAM: %@  EVENT: %lu", aStream, (unsigned long)eventCode);
+    if (NSStreamEventHasBytesAvailable == eventCode) {
+        uint8_t buffer[1024];
+        NSInteger length = 0;
+        length = [(NSInputStream *)aStream read:buffer maxLength:1024];
+        if (length) {
+            
+            if (-1 == self.imageSize) {
+                // Adapted from http://stackoverflow.com/questions/4378218/how-do-i-convert-a-24-bit-integer-into-a-3-byte-array
+                self.imageSize = ((int)buffer[3]) << 24;
+                self.imageSize |= ((int)buffer[2]) << 16;
+                self.imageSize |= ((int)buffer[1]) << 8;
+                self.imageSize |= buffer[0];
+                for (int idx = 4; idx < length; idx++) {
+                    buffer[idx - 4] = buffer[idx];
+                }
+                length -= 4;
+            }
+            [self.imageData appendBytes:(const void *)buffer length:length];
+        } else {
+            NSLog(@"ZERO LENGTH!");
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            float progress = (float)[self.imageData length] / (float)self.imageSize;
+            self.progressView.progress = progress;
+            NSLog(@"PROGRESS: %.2f", progress);
+        });
+//        NSLog(@"READ %ld  TOTAL %ld  MAX %ld", (long)length, [self.imageData length], self.imageSize);
+    } else if (NSStreamEventEndEncountered == eventCode) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.progressView.hidden = YES;
+            UIImage *image = [UIImage imageWithData:self.imageData];
+            self.imageView.image = image;
+            NSLog(@"IMAGE RECEIVED: %@", image);
+            self.imageData = nil;
+            [self.input close];
+            [self.input removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+        });
+    }
 }
 
 #pragma mark - Utilities
@@ -191,6 +253,32 @@ NSString *kServiceType = @"sprocket";
         }
         [self.hostPartyButton setTitle:text forState:UIControlStateNormal];
     });
+}
+
+- (BOOL)sendImage:(UIImage *)image
+{
+    UIImage *normalizedImage = [self normalizedImage:image];
+    NSData *data = UIImagePNGRepresentation(normalizedImage);
+    NSError *error = nil;
+    self.output = [self.guestSession startStreamWithName:@"Image" toPeer:self.hostPeer error:&error];
+    self.output.delegate = self;
+    [self.output scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+    [self.output open];
+    
+    // Adapted from http://stackoverflow.com/questions/4378218/how-do-i-convert-a-24-bit-integer-into-a-3-byte-array
+    NSUInteger value = [data length];
+    Byte bytes[4];
+    bytes[0] = value & 0xff;
+    bytes[1] = (value >> 8) & 0xff;
+    bytes[2] = (value >> 16) & 0xff;
+    bytes[3] = (value >> 24) & 0xff;
+    [self.output write:bytes maxLength:4];
+    
+    [self.output write:[data bytes] maxLength:[data length]];
+    NSLog(@"OUTPUT WRITTEN");
+    [self.output close];
+    [self.output removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+    return YES;
 }
 
 @end

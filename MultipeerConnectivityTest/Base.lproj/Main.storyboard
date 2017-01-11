@@ -47,6 +47,9 @@
                                     <action selector="joinPartyButtonHandler:" destination="BYZ-38-t0r" eventType="touchUpInside" id="F2p-GM-tkL"/>
                                 </connections>
                             </button>
+                            <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="o4o-mz-aFa">
+                                <rect key="frame" x="0.0" y="512.5" width="375" height="2"/>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -55,13 +58,14 @@
                             <constraint firstItem="RWH-Yh-ITo" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="80" id="8rE-y9-oTk"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Z42-yL-ARO" secondAttribute="trailing" constant="20" id="9Lo-tn-XQx"/>
                             <constraint firstItem="6N0-9s-He6" firstAttribute="width" secondItem="8bC-Xf-vdC" secondAttribute="width" id="Exq-S3-bHf"/>
-                            <constraint firstItem="6N0-9s-He6" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="-16" id="GkQ-AP-3Ls"/>
+                            <constraint firstItem="o4o-mz-aFa" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="GFd-M4-oJx"/>
+                            <constraint firstItem="o4o-mz-aFa" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="180" id="JMR-5V-PM0"/>
                             <constraint firstItem="6N0-9s-He6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="20" id="Ofr-yR-86r"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="height" secondItem="8bC-Xf-vdC" secondAttribute="height" multiplier="0.4" id="PRh-YZ-BLk"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="20" id="QBB-PS-dPG"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="6N0-9s-He6" secondAttribute="trailing" constant="-16" id="Y1o-jM-N2c"/>
                             <constraint firstItem="6N0-9s-He6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="cqD-Bj-zK2"/>
                             <constraint firstItem="yBW-ab-mt8" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="140" id="nci-a7-95d"/>
+                            <constraint firstItem="o4o-mz-aFa" firstAttribute="width" secondItem="8bC-Xf-vdC" secondAttribute="width" id="pk7-85-F2f"/>
                             <constraint firstItem="RWH-Yh-ITo" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="tDs-gH-2nc"/>
                             <constraint firstItem="Z42-yL-ARO" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="20" id="zr9-y4-Sw8"/>
                         </constraints>
@@ -70,6 +74,7 @@
                         <outlet property="hostPartyButton" destination="6N0-9s-He6" id="cGq-xH-LGP"/>
                         <outlet property="imageView" destination="Z42-yL-ARO" id="sSo-Zu-Mrc"/>
                         <outlet property="joinPartyButton" destination="RWH-Yh-ITo" id="fJJ-7c-Iw8"/>
+                        <outlet property="progressView" destination="o4o-mz-aFa" id="aKX-Tb-pdB"/>
                         <outlet property="sendPhotoButton" destination="yBW-ab-mt8" id="0fV-cX-xGC"/>
                     </connections>
                 </viewController>
@@ -90,11 +95,11 @@
                                 <rect key="frame" x="0.0" y="60" width="375" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="lG2-rI-p3D" id="9Cq-ap-wsh">
-                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RJu-mQ-FiZ">
-                                            <rect key="frame" x="15" y="0.0" width="345" height="43.5"/>
+                                            <rect key="frame" x="15" y="0.0" width="345" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="0.0"/>
                                             <nil key="textColor"/>
