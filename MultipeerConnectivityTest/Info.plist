@@ -18,10 +18,12 @@
 	<string>2.2</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>This app uses Bluetooth to create unmitigated awesomeness.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app accesses the Photos Library so you can choose a photo to send to a friend's device.</string>
+	<string>This app accesses the Photos Library so you can choose a photo to send to a friend&apos;s device.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

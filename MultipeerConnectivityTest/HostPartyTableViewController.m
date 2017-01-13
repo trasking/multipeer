@@ -8,11 +8,16 @@
 
 #import "HostPartyTableViewController.h"
 #import "ViewController.h"
+#import <CoreBluetooth/CoreBluetooth.h>
 
-@interface HostPartyTableViewController () <MCNearbyServiceBrowserDelegate>
+@interface HostPartyTableViewController () <MCNearbyServiceBrowserDelegate, CBCentralManagerDelegate, CBPeripheralDelegate>
 
 @property (strong, nonatomic) MCNearbyServiceBrowser *browser;
 @property (strong, nonatomic) NSMutableArray<MCPeerID *> *availablePeers;
+
+@property (strong, nonatomic) CBCentralManager *centralManager;
+@property (strong, nonatomic) NSMutableArray<CBPeripheral *> *availablePeripherals;
+@property (strong, nonatomic) NSMutableArray<CBPeripheral *> *connectedPeripherals;
 
 @end
 
@@ -39,15 +44,20 @@ NSUInteger kHostAvailableSection = 1;
 {
     [super viewDidAppear:animated];
     
-    self.availablePeers = [NSMutableArray array];
-    self.browser = [[MCNearbyServiceBrowser alloc] initWithPeer:self.peer serviceType:kHostServiceType];
-    self.browser.delegate = self;
-    [self.browser startBrowsingForPeers];
+    [self setupBluetooth];
+    
+// MPC
+//    self.availablePeers = [NSMutableArray array];
+//    self.browser = [[MCNearbyServiceBrowser alloc] initWithPeer:self.peer serviceType:kHostServiceType];
+//    self.browser.delegate = self;
+//    [self.browser startBrowsingForPeers];
 }
 
 - (IBAction)doneButtonTapped:(id)sender {
-    [self.browser stopBrowsingForPeers];
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self.centralManager stopScan];
+// MPC
+//    [self.browser stopBrowsingForPeers];
+//    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -65,7 +75,9 @@ NSUInteger kHostAvailableSection = 1;
     if (kHostJoinedSection == section) {
         return self.session.connectedPeers.count;
     } else {
-        return self.availablePeers.count;
+        return self.availablePeripherals.count;
+// MPC
+//        return self.availablePeers.count;
     }
 }
 
@@ -83,20 +95,17 @@ NSUInteger kHostAvailableSection = 1;
     if (kHostJoinedSection == section) {
         return [NSString stringWithFormat:@"%lu device%@", (unsigned long)self.session.connectedPeers.count, 1 == self.session.connectedPeers.count ? @"" : @"s"];
     } else {
-        return [NSString stringWithFormat:@"%lu device%@", (unsigned long)self.availablePeers.count, 1 == self.availablePeers.count ? @"" : @"s"];
+        return [NSString stringWithFormat:@"%lu device%@", (unsigned long)self.availablePeripherals.count, 1 == self.availablePeripherals.count ? @"" : @"s"];
+// MPC
+//        return [NSString stringWithFormat:@"%lu device%@", (unsigned long)self.availablePeers.count, 1 == self.availablePeers.count ? @"" : @"s"];
     }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kHostCellReuseIdentifier forIndexPath:indexPath];
-    MCPeerID *peer = nil;
-    if (kHostJoinedSection == indexPath.section) {
-        peer = [self.session.connectedPeers objectAtIndex:indexPath.row];
-    } else {
-        peer = [self.availablePeers objectAtIndex:indexPath.row];
-    }
-    cell.textLabel.text = peer.displayName;
+    CBPeripheral *peripheral = [self.availablePeripherals objectAtIndex:indexPath.row];
+    cell.textLabel.text = peripheral.name;
     return cell;
 }
 
@@ -105,10 +114,10 @@ NSUInteger kHostAvailableSection = 1;
     UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
     cell.selected = NO;
     if (indexPath.section == kHostAvailableSection) {
-        MCPeerID *peer = [self.availablePeers objectAtIndex:indexPath.row];
-        NSLog(@"INVITE PEER: %@", peer.displayName);
-        [self.browser invitePeer:peer toSession:self.session withContext:nil timeout:10];
-        [self.availablePeers removeObject:peer];
+        CBPeripheral *peripheral = [self.availablePeripherals objectAtIndex:indexPath.row];
+        [self.connectedPeripherals addObject:peripheral];
+        [self.availablePeripherals removeObject:peripheral];
+        [self.centralManager connectPeripheral:peripheral options:nil];
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.tableView reloadData];
         });
@@ -186,6 +195,69 @@ NSUInteger kHostAvailableSection = 1;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.tableView reloadData];
     });
+}
+
+#pragma mark - CBCentralManagerDelegate
+
+- (void)centralManagerDidUpdateState:(CBCentralManager *)central
+{
+    NSLog(@"CENTRAL STATE: %ld", central.state);
+    if (CBManagerStatePoweredOn == central.state) {
+        CBUUID *serviceUUID = [CBUUID UUIDWithString:@"3605946E-9BBB-4366-9369-06B7D4412927"];
+        [self.centralManager scanForPeripheralsWithServices:@[ serviceUUID ] options:nil];
+    }
+}
+
+- (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary<NSString *, id> *)advertisementData RSSI:(NSNumber *)RSSI
+{
+    NSLog(@"DISCOVERED PERIPHERAL: %@\nADVERTISEMENT DATA: %@\nRSSI: %@", peripheral, advertisementData, RSSI);
+    [self.availablePeripherals addObject:peripheral];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.tableView reloadData];
+    });
+}
+
+- (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
+{
+    NSLog(@"CONNECTED PERIPHERAL: %@", peripheral);
+    peripheral.delegate = self;
+    CBUUID *serviceUUID = [CBUUID UUIDWithString:@"3605946E-9BBB-4366-9369-06B7D4412927"];
+    [peripheral discoverServices:@[ serviceUUID ]];
+}
+
+- (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(nullable NSError *)error
+{
+    NSLog(@"FAILED TO CONNECT PERIPHERAL: %@\nERROR: %@", peripheral, error);
+}
+
+- (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(nullable NSError *)error
+{
+    NSLog(@"DISCONNECTED PERIPHERAL: %@\nERROR: %@", peripheral, error);
+}
+
+//- (void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary<NSString *, id> *)dict {}
+
+#pragma mark - Bluetooth
+
+- (void)setupBluetooth
+{
+    self.availablePeripherals = [NSMutableArray array];
+    self.connectedPeripherals = [NSMutableArray array];
+    self.centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
+}
+
+#pragma mark - CBPeripheralDelegate
+
+- (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(nullable NSError *)error
+{
+    NSLog(@"DISCOVERED SERVICES: %@\nERROR: %@", peripheral.services, error);
+    CBUUID *characteristicUUID = [CBUUID UUIDWithString:@"815DCE0B-2A67-415F-B2A4-10E0221AE541"];
+    [peripheral discoverCharacteristics:@[ characteristicUUID ] forService:peripheral.services[0]];
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(nullable NSError *)error
+{
+    NSLog(@"DISCOVERED CHARACTERISTICS: %@\nERROR: %@", service.characteristics, error);
 }
 
 @end

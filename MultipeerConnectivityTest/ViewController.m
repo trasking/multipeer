@@ -9,8 +9,9 @@
 #import "ViewController.h"
 #import <MultipeerConnectivity/MultipeerConnectivity.h>
 #import "HostPartyTableViewController.h"
+#import <CoreBluetooth/CoreBluetooth.h>
 
-@interface ViewController () <MCNearbyServiceBrowserDelegate, MCNearbyServiceAdvertiserDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MCSessionDelegate, NSStreamDelegate>
+@interface ViewController () <MCNearbyServiceBrowserDelegate, MCNearbyServiceAdvertiserDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MCSessionDelegate, NSStreamDelegate, CBPeripheralManagerDelegate, CBPeripheralDelegate>
 
 @property (strong, nonatomic) MCPeerID *peer;
 @property (strong, nonatomic) MCPeerID *hostPeer;
@@ -31,17 +32,23 @@
 @property (strong, nonatomic) NSDate *sendStartTime;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressView;
 
+@property (strong, nonatomic) CBPeripheralManager *peripheralManager;
+@property (strong, nonatomic) CBMutableService *service;
+
 @end
 
 @implementation ViewController
 
 NSString * const kSessionChangedNotification = @"kSessionChangedNotification";
 NSString * const kServiceType = @"sprocket";
+NSString * const kServiceUUID = @"3605946E-9BBB-4366-9369-06B7D4412927";
+NSString * const kCharacteristicUUID = @"815DCE0B-2A67-415F-B2A4-10E0221AE541";
 NSUInteger const kMaxChunkSize = 1024;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self setupConnectivity];
+    [self setupBluetooth];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -76,7 +83,8 @@ NSUInteger const kMaxChunkSize = 1024;
 - (IBAction)joinPartyButtonHandler:(id)sender {
     dispatch_async(dispatch_get_main_queue(), ^{
         if ([self.joinPartyButton.titleLabel.text isEqualToString:@"Join Party"]) {
-            [self.advertiser startAdvertisingPeer];
+            [self startAdvertising];
+            // MPC [self.advertiser startAdvertisingPeer];
             [self.joinPartyButton setTitle:@"Ready to Party" forState:UIControlStateNormal];
         } else if ([self.joinPartyButton.titleLabel.text isEqualToString:@"Ready to Party"]) {
           [self.advertiser stopAdvertisingPeer];
@@ -239,6 +247,37 @@ NSUInteger const kMaxChunkSize = 1024;
     }
 }
 
+#pragma mark - CBPeripheralManagerDelegate
+
+- (void)peripheralManagerDidUpdateState:(CBPeripheralManager *)peripheral
+{
+    NSLog(@"PERIPHERAL STATE CHANGE: %ld", (long)peripheral.state);
+    if (CBManagerStatePoweredOn == peripheral.state && !self.service) {
+        CBMutableCharacteristic *characteristic = [[CBMutableCharacteristic alloc] initWithType:[CBUUID UUIDWithString:kCharacteristicUUID] properties:CBCharacteristicPropertyRead + CBCharacteristicPropertyIndicate value:nil permissions:CBAttributePermissionsReadable];
+        self.service = [[CBMutableService alloc] initWithType:[CBUUID UUIDWithString:kServiceUUID] primary:YES];
+        self.service.characteristics = @[ characteristic ];
+        [self.peripheralManager addService:self.service];
+    }
+}
+
+- (void)peripheralManager:(CBPeripheralManager *)peripheral didAddService:(CBService *)service error:(nullable NSError *)error
+{
+    NSLog(@"SERVICE ADDED: %@\nERROR: %@", service, error);
+}
+
+- (void)peripheralManagerDidStartAdvertising:(CBPeripheralManager *)peripheral error:(nullable NSError *)error
+{
+    NSLog(@"STARTED ADVERTISING: %@", error);
+}
+
+
+//- (void)peripheralManager:(CBPeripheralManager *)peripheral willRestoreState:(NSDictionary<NSString *, id> *)dict {}
+//- (void)peripheralManager:(CBPeripheralManager *)peripheral central:(CBCentral *)central didSubscribeToCharacteristic:(CBCharacteristic *)characteristic {}
+//- (void)peripheralManager:(CBPeripheralManager *)peripheral central:(CBCentral *)central didUnsubscribeFromCharacteristic:(CBCharacteristic *)characteristic {}
+//- (void)peripheralManager:(CBPeripheralManager *)peripheral didReceiveReadRequest:(CBATTRequest *)request {}
+//- (void)peripheralManager:(CBPeripheralManager *)peripheral didReceiveWriteRequests:(NSArray<CBATTRequest *> *)requests {}
+//- (void)peripheralManagerIsReadyToUpdateSubscribers:(CBPeripheralManager *)peripheral {}
+
 #pragma mark - Utilities
 
 - (UIImage *)normalizedImage:(UIImage *)image {
@@ -299,5 +338,23 @@ NSUInteger const kMaxChunkSize = 1024;
     
     return YES;
 }
+
+#pragma mark - Bluetooth
+
+- (void)setupBluetooth
+{
+    self.peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil options:nil];
+}
+
+- (void)startAdvertising
+{
+    NSDictionary *advertisingData = @{
+        CBAdvertisementDataLocalNameKey: @"Sprocket",
+        CBAdvertisementDataServiceUUIDsKey: @[ self.service.UUID ]
+    };
+    [self.peripheralManager startAdvertising:advertisingData];
+}
+
+
 
 @end
