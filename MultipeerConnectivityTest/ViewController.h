@@ -7,10 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <CoreBluetooth/CoreBluetooth.h>
 
 @interface ViewController : UIViewController
 
-extern NSString * const kSessionChangedNotification;
+extern NSString * const kPeripheralsChangedNotification;
 
 @end
-

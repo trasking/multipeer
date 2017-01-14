@@ -7,11 +7,24 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <MultipeerConnectivity/MultipeerConnectivity.h>
+#import <CoreBluetooth/CoreBluetooth.h>
+
+@protocol HostPartyTableViewControllerDelegate;
 
 @interface HostPartyTableViewController : UITableViewController
 
-@property (strong, nonatomic) MCPeerID *peer;
-@property (strong, nonatomic) MCSession *session;
+@property (weak, nonatomic) id<HostPartyTableViewControllerDelegate>delegate;
+@property (strong, nonatomic) NSMutableArray<CBPeripheral *> *availablePeripherals;
+@property (strong, nonatomic) NSMutableArray<CBPeripheral *> *connectedPeripherals;
+
+@end
+
+@protocol HostPartyTableViewControllerDelegate <NSObject>
+
+@required
+
+- (void)startHosting;
+- (void)stopHosting;
+- (void)didRequestConnectPeripheral:(CBPeripheral *)peripheral;
 
 @end
